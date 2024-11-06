@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chat App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div id="result-box"></div>
+        
+        <div class="input-section">
+            <input type="text" id="chat-input" placeholder="Enter your message...">
+            <button onclick="submitQuery()">Submit Query</button>
+        </div>
+        
+        <div class="input-section">
+            <input type="text" id="image-input" placeholder="Enter image prompt...">
+            <button onclick="generateImage()">Generate Image</button>
+        </div>
+    </div>
+
+    <script>
+        async function submitQuery() {
+            const input = document.getElementById('chat-input');
+            const query = input.value;
+            input.value = '';
+            
+            if (!query.trim()) return;
+            
+            appendMessage('You: ' + query);
+            appendMessage('Fetching response...');
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: query }),
+                });
+                const data = await response.json();
+                
+                // Remove "Fetching response..." message
+                document.getElementById('result-box').lastChild.remove();
+                appendMessage('AI: ' + data.response);
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('Error: Failed to get response');
+            }
+        }
+
+        async function generateImage() {
+            const input = document.getElementById('image-input');
+            const prompt = input.value;
+            input.value = '';
+            
+            if (!prompt.trim()) return;
+            
+            appendMessage('Generating image for prompt: ' + prompt);
+            appendMessage('Fetching image...');
+            
+            try {
+                const response = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                });
+                const data = await response.json();
+                
+                // Remove "Fetching image..." message
+                document.getElementById('result-box').lastChild.remove();
+                appendMessage(`AI: <img src="${data.url}" alt="Generated Image">`);
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('Error: Failed to generate image');
+            }
+        }
+
+        function appendMessage(message) {
+            const resultBox = document.getElementById('result-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = message;
+            resultBox.appendChild(messageDiv);
+            resultBox.scrollTop = resultBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
