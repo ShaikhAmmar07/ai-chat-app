@@ -2,3 +2,4 @@ flask==2.0.1
 g4f
 aiohttp
 python-dotenv
+flask-cors
